@@ -11,5 +11,6 @@ Discourse.Dialect.on("parseNode", function(event) {
     if(url.toLowerCase().match(/jpg|png|gif|jpeg$/)) return true;
 
     node[1].href = "http://www.mmqqg.com/j?url=" + encodeURIComponent(url);
+    node[1].ohref = url;
   })
 }) ();
