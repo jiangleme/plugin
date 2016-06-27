@@ -20,7 +20,7 @@ Onebox = Onebox
 
 module Onebox
   module Engine
-    class SteamUserOnebox
+    class GeneralOnebox
       include Engine
 
       def self.priority
