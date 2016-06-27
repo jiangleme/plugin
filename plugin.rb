@@ -1,6 +1,6 @@
 # name: discourse-affiliate
 # about: Official affiliation plugin for Discourse
-# version: 0.3
+# version: 0.4
 # authors: Régis Hanol (zogstrip)
 # url: https://github.com/jiangleme/plugin
 
@@ -14,8 +14,14 @@ register_asset "javascripts/discourse/dialects/onebox_dialect.js", :server_side
 
 require 'htmlentities'
 
-class Onebox::Engine::WhitelistedGenericOnebox
-      include Onebox::Engine
+#class Onebox::Engine::WhitelistedGenericOnebox
+#      include Onebox::Engine
+Onebox = Onebox
+
+module Onebox
+  module Engine
+    class SteamUserOnebox
+      include Engine
 
       def self.priority
         @priority = 10
@@ -260,4 +266,6 @@ class Onebox::Engine::WhitelistedGenericOnebox
           html << " #{attribute.to_s}=\"#{val}\""
         end
       end
+    end
+  end
 end
