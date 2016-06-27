@@ -134,6 +134,7 @@ module Onebox
         #rewrite_https(generic_html)
         imgur_data = get_imgur_data
         return "<a href='#{imgur_data[:url]}' target='_blank'><img src='#{imgur_data[:image]}' alt='' >#{ imgur_data[:title] }</a>" if imgur_data[:image]
+        return "<a href='#{imgur_data[:url]}' target='_blank'><img src='#{imgur_data[:image]}' alt='' >#{ imgur_data[:title] }</a>" 
         return nil 
       end
 
@@ -143,36 +144,6 @@ module Onebox
         #result = image_html if (data[:html] && data[:html] =~ /iframe/) || data[:video] || photo_type?
         #result || to_html
         to_html
-      end
-
-      def data
-        if raw.is_a?(Hash)
-          raw[:link] ||= link
-          raw[:title] = HTMLEntities.new.decode(raw[:title])
-          return raw
-        end
-
-        data_hash = { link: link, title: HTMLEntities.new.decode(raw.title), description: raw.description }
-        data_hash[:image] = raw.images.first if raw.images && raw.images.first
-        data_hash[:type] = raw.type if raw.type
-
-        if raw.metadata && raw.metadata[:"video:secure_url"] && raw.metadata[:"video:secure_url"].first
-          data_hash[:video] = raw.metadata[:"video:secure_url"].first
-        elsif raw.metadata && raw.metadata[:video] && raw.metadata[:video].first
-          data_hash[:video] = raw.metadata[:video].first
-        end
-
-        if raw.metadata && raw.metadata[:"twitter:label1"] && raw.metadata[:"twitter:data1"]
-          data_hash[:twitter_label1] = raw.metadata[:"twitter:label1"].first
-          data_hash[:twitter_data1] = raw.metadata[:"twitter:data1"].first
-        end
-
-        if raw.metadata && raw.metadata[:"twitter:label2"] && raw.metadata[:"twitter:data2"]
-          data_hash[:twitter_label2] = raw.metadata[:"twitter:label2"].first
-          data_hash[:twitter_data2] = raw.metadata[:"twitter:data2"].first
-        end
-
-        data_hash
       end
 
       
@@ -195,77 +166,6 @@ module Onebox
         return imgur_data
       end
 
-      def image_html
-        return @image_html if @image_html
-
-        return @image_html = "<img src=\"#{data[:image]}\">" if data[:image]
-
-        if data[:thumbnail_url]
-          @image_html = "<img src=\"#{data[:thumbnail_url]}\""
-          @image_html << " width=\"#{data[:thumbnail_width]}\"" if data[:thumbnail_width]
-          @image_html << " height=\"#{data[:thumbnail_height]}\"" if data[:thumbnail_height]
-          @image_html << ">"
-        end
-
-        @image_html
-      end
-
-      def html_for_video(video)
-        if video.is_a?(String)
-          video_url = video
-        elsif video.is_a?(Hash)
-          video_url = video[:_value]
-        else
-          return
-        end
-
-
-        if video_url
-          # opengraph support multiple elements (videos, images ,etc).
-          # We attempt to find a video element with the type of video/mp4
-          # and generate a native <video> element for it.
-
-          if (@raw.metadata && @raw.metadata[:"video:type"])
-            video_type =  @raw.metadata[:"video:type"]
-            if video_type.include? "video/mp4"            # find if there is a video with type
-              if video_type.size > 1                      # if more then one video item based on provided video_type
-                ind = video_type.find_index("video/mp4")  # get the first video index with type video/mp4
-                video_url  = @raw.metadata[:video][ind]   # update video_url
-              end
-
-              attr = append_attribute(:width, attr, video)
-              attr = append_attribute(:height, attr, video)
-
-              site_name_and_title  =  ( ("<span style='color:#fff;background:#9B9B9B;border-radius:3px;padding:3px;margin-right: 5px;'>" + CGI::escapeHTML(@raw.metadata[:site_name][0].to_s) + '</span> ') + CGI::escapeHTML((@raw.title || @raw.description).to_s) )
-              orig_url = @raw.url
-              html_v2 = %Q(
-                <div style='position:relative;padding-top:29px;'>
-                <span style='position: absolute;top:0px;z-index:2;color:#000;white-space:nowrap;text-overflow:ellipsis;word-wrap: break-word;overflow: hidden;display: inline-block;padding: 3px;border-radius: 4px;max-width: 100%;'><a href='#{orig_url}' target='_blank'>#{site_name_and_title}</a></span>
-                <video style='max-width:100%' #{attr} title="#{data[:title]}" controls="" ><source src="#{video_url}"></video>
-                </div>
-                )
-              html = html_v2
-
-            else
-
-              html = "<iframe src=\"#{video_url}\" frameborder=\"0\" title=\"#{data[:title]}\""
-              append_attribute(:width, html, video)
-              append_attribute(:height, html, video)
-
-              html << "></iframe>"
-            end
-
-          end
-          return html
-        end
-      end
-
-      def append_attribute(attribute, html, video)
-        if video.is_a?(Hash) && video[attribute] && video[attribute].first
-          val = video[attribute].first[:_value]
-          html << " #{attribute.to_s}=\"#{val}\""
-        end
-      end
     end
   end
 end
