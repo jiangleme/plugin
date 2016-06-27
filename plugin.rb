@@ -261,4 +261,5 @@ class Onebox::Engine::WhitelistedGenericOnebox
           val = video[attribute].first[:_value]
           html << " #{attribute.to_s}=\"#{val}\""
         end
+      end
 end
