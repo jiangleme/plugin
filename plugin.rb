@@ -92,14 +92,7 @@ module Onebox
         end
       end
 
-      # Generates the HTML for the embedded content
-      def photo_type?
-        ( (data[:type] =~ /photo/ || data[:type] =~ /image/) && data[:type] !~ /photostream/ )
-      end
 
-      def article_type?
-        data[:type] == "article"
-      end
 
       def rewrite_https(html)
         return html unless html
@@ -110,24 +103,6 @@ module Onebox
         html
       end
 
-      def html_type?
-        return data &&
-               data[:html] &&
-               (
-                 (data[:html] =~ /iframe/) ||
-                 WhitelistedGenericOnebox.html_providers.include?(data[:provider_name])
-               )
-      end
-
-      def generic_html
-        return data[:html] if html_type?
-        return layout.to_html if article_type?
-        return html_for_video(data[:video]) if data[:video]
-        return image_html if photo_type?
-        return nil if data[:title].nil? || data[:title].empty?
-
-        layout.to_html
-      end
 
 
       def to_html
@@ -153,13 +128,14 @@ module Onebox
         html = Nokogiri::HTML(response.body)
         imgur_data = {}
         html.css('meta').each do |m|
-          if m.attribute('property') && m.attribute('property').to_s.match(/^og:/i)
+          #if m.attribute('property') && m.attribute('property').to_s.match(/^og:/i)
+          if m.attribute('property')
             m_content = m.attribute('content').to_s.strip
             m_property = m.attribute('property').to_s.gsub('og:', '')
             imgur_data[m_property.to_sym] = m_content
-          elsif m.attribute('property') && m.attribute('content')
+          elsif m.attribute('name')
             m_content = m.attribute('content').to_s.strip
-            m_property = m.attribute('property').to_s
+            m_property = m.attribute('name').to_s
             imgur_data[m_property.to_sym] ||= m_content
           end
         end
