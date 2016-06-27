@@ -15,9 +15,9 @@ register_asset "javascripts/discourse/dialects/onebox_dialect.js", :server_side
 require 'htmlentities'
 
 class Onebox::Engine::WhitelistedGenericOnebox
-      include Engine
-      include StandardEmbed
-      include LayoutSupport
+      include Onebox::Engine
+      include Onebox::StandardEmbed
+      include Onebox::LayoutSupport
 
       def self.priority
         @priority = 10
